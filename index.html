@@ -1,0 +1,518 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Picture Fixer — Mumbrella</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.6.2/cropper.min.css">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      background: #ececec;
+      color: #1a1a1a;
+      min-height: 100vh;
+    }
+
+    /* ── Header ── */
+    header {
+      background: #1a1a1a;
+      padding: 0 28px;
+      height: 60px;
+      display: flex;
+      align-items: center;
+      gap: 18px;
+      box-shadow: 0 2px 6px rgba(0,0,0,.35);
+      position: sticky;
+      top: 0;
+      z-index: 100;
+    }
+    header img.logo { height: 28px; display: block; }
+    header .divider { width: 1px; height: 24px; background: #444; }
+    header h1 {
+      font-size: 1rem;
+      font-weight: 700;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      color: #fff;
+    }
+    header h1 span { color: #d0021b; }
+
+    /* ── Main ── */
+    main { max-width: 980px; margin: 0 auto; padding: 32px 16px 80px; }
+
+    /* ── Upload Zone ── */
+    #upload-zone {
+      background: #fff;
+      border: 2px dashed #ccc;
+      border-radius: 12px;
+      padding: 80px 24px;
+      text-align: center;
+      cursor: pointer;
+      transition: border-color .15s, background .15s;
+      user-select: none;
+    }
+    #upload-zone:hover, #upload-zone.drag-over {
+      border-color: #d0021b;
+      background: #fff8f8;
+    }
+    #upload-zone .icon { font-size: 56px; line-height: 1; margin-bottom: 16px; }
+    #upload-zone h2 { font-size: 1.15rem; font-weight: 600; color: #333; margin-bottom: 6px; }
+    #upload-zone p { color: #999; font-size: 0.85rem; }
+    #file-input { display: none; }
+
+    /* ── Editor ── */
+    #editor { display: none; }
+
+    /* ── Card ── */
+    .card {
+      background: #fff;
+      border-radius: 10px;
+      box-shadow: 0 1px 4px rgba(0,0,0,.09);
+      margin-bottom: 16px;
+      overflow: hidden;
+    }
+    .card-header {
+      padding: 13px 20px;
+      border-bottom: 1px solid #f0f0f0;
+      font-size: 0.78rem;
+      font-weight: 700;
+      letter-spacing: 0.07em;
+      text-transform: uppercase;
+      color: #888;
+    }
+    .card-body { padding: 20px; }
+
+    /* ── Cropper ── */
+    .crop-wrap {
+      background: #111;
+      max-height: 480px;
+    }
+    #crop-image { display: block; max-width: 100%; }
+
+    /* ── Enhancement ── */
+    .enhance-row {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 20px;
+      flex-wrap: wrap;
+    }
+    .enhance-label { font-size: 0.9rem; color: #555; min-width: 100px; }
+    .level-badge {
+      min-width: 72px;
+      text-align: center;
+      font-size: 0.9rem;
+      font-weight: 700;
+      padding: 7px 10px;
+      border-radius: 6px;
+      background: #f4f4f4;
+      color: #888;
+      transition: background .15s, color .15s;
+    }
+    .level-badge.positive { background: #fff0f0; color: #d0021b; }
+    .level-badge.negative { background: #f0f4ff; color: #2255cc; }
+
+    /* ── Preview canvas ── */
+    #preview-canvas {
+      display: block;
+      width: 100%;
+      height: auto;
+      border-radius: 5px;
+      background: #111;
+    }
+
+    /* ── Caption ── */
+    .caption-row { margin-bottom: 20px; }
+    .caption-row label {
+      display: block;
+      font-size: 0.84rem;
+      font-weight: 600;
+      color: #555;
+      margin-bottom: 6px;
+    }
+    #caption-input {
+      width: 100%;
+      padding: 10px 14px;
+      border: 1.5px solid #ddd;
+      border-radius: 8px;
+      font-size: 1rem;
+      font-family: inherit;
+      outline: none;
+      transition: border-color .15s, box-shadow .15s;
+    }
+    #caption-input:focus { border-color: #d0021b; box-shadow: 0 0 0 3px rgba(208,2,27,.1); }
+    #caption-input.error { border-color: #d0021b; animation: shake .3s; }
+
+    @keyframes shake {
+      0%,100% { transform: translateX(0); }
+      25%      { transform: translateX(-6px); }
+      75%      { transform: translateX(6px); }
+    }
+
+    /* ── Buttons ── */
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      padding: 9px 18px;
+      border: none;
+      border-radius: 8px;
+      font-size: 0.92rem;
+      font-family: inherit;
+      font-weight: 600;
+      cursor: pointer;
+      transition: background .12s, transform .08s, box-shadow .12s;
+      white-space: nowrap;
+    }
+    .btn:active { transform: scale(.97); }
+
+    .btn-primary {
+      background: #d0021b;
+      color: #fff;
+      box-shadow: 0 2px 6px rgba(208,2,27,.3);
+    }
+    .btn-primary:hover { background: #b5001a; box-shadow: 0 3px 10px rgba(208,2,27,.35); }
+
+    .btn-secondary {
+      background: #f0f0f0;
+      color: #333;
+    }
+    .btn-secondary:hover { background: #e2e2e2; }
+
+    .btn-lg { padding: 12px 30px; font-size: 1rem; }
+
+    /* ── Download row ── */
+    .download-row {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      flex-wrap: wrap;
+    }
+    .filename-preview {
+      font-size: 0.8rem;
+      color: #aaa;
+      font-style: italic;
+      flex: 1;
+    }
+    .filename-preview.ready { color: #555; }
+    #btn-reset {
+      background: none;
+      border: none;
+      font-family: inherit;
+      font-size: 0.82rem;
+      color: #bbb;
+      cursor: pointer;
+      text-decoration: underline;
+      padding: 4px;
+    }
+    #btn-reset:hover { color: #555; }
+  </style>
+</head>
+<body>
+
+<header>
+  <img src="mumbrellafooter.png" alt="Mumbrella" class="logo">
+  <div class="divider"></div>
+  <h1>Picture <span>Fixer</span></h1>
+</header>
+
+<main>
+
+  <!-- ── Upload Zone ── -->
+  <div id="upload-zone" role="button" aria-label="Upload image" tabindex="0">
+    <div class="icon">🖼</div>
+    <h2>Drop an image here, or click to upload</h2>
+    <p>JPEG · PNG · WebP · GIF · TIFF · BMP · HEIC and more &mdash; or just paste with &#8984;V / Ctrl+V</p>
+    <input type="file" id="file-input" accept="image/*">
+  </div>
+
+  <!-- ── Editor ── -->
+  <div id="editor">
+
+    <!-- Step 1: Crop -->
+    <div class="card">
+      <div class="card-header">Step 1 &mdash; Position your 16:9 crop</div>
+      <div class="crop-wrap">
+        <img id="crop-image" src="" alt="">
+      </div>
+    </div>
+
+    <!-- Step 2: Enhance + Preview -->
+    <div class="card">
+      <div class="card-header">Step 2 &mdash; Brightness &amp; contrast</div>
+      <div class="card-body">
+        <div class="enhance-row">
+          <span class="enhance-label">Adjustment</span>
+          <button class="btn btn-secondary" id="btn-reduce">&#8722; Reduce</button>
+          <div class="level-badge" id="level-badge">0%</div>
+          <button class="btn btn-secondary" id="btn-enhance">&#43; Enhance</button>
+        </div>
+        <canvas id="preview-canvas" aria-label="Image preview"></canvas>
+      </div>
+    </div>
+
+    <!-- Step 3: Caption + Download -->
+    <div class="card">
+      <div class="card-header">Step 3 &mdash; Caption &amp; download</div>
+      <div class="card-body">
+        <div class="caption-row">
+          <label for="caption-input">Who or what is in the image?</label>
+          <input type="text" id="caption-input" placeholder="e.g. Jane Smith at Cannes Lions 2026" autocomplete="off">
+        </div>
+        <div class="download-row">
+          <button class="btn btn-primary btn-lg" id="btn-download">&#8659;&nbsp; Download fixed image</button>
+          <span class="filename-preview" id="filename-preview">Enter a caption to see the filename</span>
+          <button id="btn-reset">Start over</button>
+        </div>
+      </div>
+    </div>
+
+  </div><!-- /editor -->
+</main>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.6.2/cropper.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/piexifjs@1.0.6/piexif.js"></script>
+<script>
+  'use strict';
+
+  // ── Elements ──────────────────────────────────────────────────────────────
+  const uploadZone    = document.getElementById('upload-zone');
+  const fileInput     = document.getElementById('file-input');
+  const editor        = document.getElementById('editor');
+  const cropImage     = document.getElementById('crop-image');
+  const previewCanvas = document.getElementById('preview-canvas');
+  const levelBadge    = document.getElementById('level-badge');
+  const captionInput  = document.getElementById('caption-input');
+  const filenameEl    = document.getElementById('filename-preview');
+  const btnEnhance    = document.getElementById('btn-enhance');
+  const btnReduce     = document.getElementById('btn-reduce');
+  const btnDownload   = document.getElementById('btn-download');
+  const btnReset      = document.getElementById('btn-reset');
+
+  // ── State ─────────────────────────────────────────────────────────────────
+  let cropper       = null;
+  let enhanceLevel  = 0;   // each step = ±10% brightness, ±8% contrast
+  const MIN_LEVEL   = -5;
+  const MAX_LEVEL   = 10;
+
+  // ── Upload ────────────────────────────────────────────────────────────────
+  uploadZone.addEventListener('click', () => fileInput.click());
+  uploadZone.addEventListener('keydown', e => { if (e.key === 'Enter' || e.key === ' ') fileInput.click(); });
+
+  uploadZone.addEventListener('dragover', e => {
+    e.preventDefault();
+    uploadZone.classList.add('drag-over');
+  });
+  uploadZone.addEventListener('dragleave',  () => uploadZone.classList.remove('drag-over'));
+  uploadZone.addEventListener('drop', e => {
+    e.preventDefault();
+    uploadZone.classList.remove('drag-over');
+    const file = e.dataTransfer.files[0];
+    if (file && file.type.startsWith('image/')) loadImage(file);
+  });
+
+  fileInput.addEventListener('change', e => {
+    if (e.target.files[0]) loadImage(e.target.files[0]);
+  });
+
+  document.addEventListener('paste', e => {
+    const items = e.clipboardData && e.clipboardData.items;
+    if (!items) return;
+    for (const item of items) {
+      if (item.type.startsWith('image/')) {
+        const file = item.getAsFile();
+        if (file) { loadImage(file); break; }
+      }
+    }
+  });
+
+  function loadImage(file) {
+    const reader = new FileReader();
+    reader.onload = evt => {
+      uploadZone.style.display = 'none';
+      editor.style.display     = 'block';
+
+      if (cropper) { cropper.destroy(); cropper = null; }
+
+      enhanceLevel = 0;
+      captionInput.value = '';
+      updateLevelBadge();
+      updateFilenamePreview();
+
+      cropImage.src = evt.target.result;
+      cropImage.onload = () => {
+        cropper = new Cropper(cropImage, {
+          aspectRatio:  16 / 9,
+          viewMode:     1,
+          autoCropArea: 0.95,
+          responsive:   true,
+          ready()   { schedulePreview(); },
+          cropend() { schedulePreview(); },
+        });
+      };
+    };
+    reader.readAsDataURL(file);
+  }
+
+  // ── Preview (debounced) ───────────────────────────────────────────────────
+  let previewTimer = null;
+  function schedulePreview() {
+    clearTimeout(previewTimer);
+    previewTimer = setTimeout(renderPreview, 120);
+  }
+
+  function renderPreview() {
+    if (!cropper) return;
+    const src = cropper.getCroppedCanvas({ width: 800, height: 450 });
+    if (!src) return;
+
+    previewCanvas.width  = src.width;
+    previewCanvas.height = src.height;
+    const ctx = previewCanvas.getContext('2d');
+    ctx.clearRect(0, 0, src.width, src.height);
+    ctx.filter = buildFilter();
+    ctx.drawImage(src, 0, 0);
+    ctx.filter = 'none';
+  }
+
+  function buildFilter() {
+    if (enhanceLevel === 0) return 'none';
+    const b = (1 + enhanceLevel * 0.10).toFixed(2);
+    const c = (1 + enhanceLevel * 0.08).toFixed(2);
+    return `brightness(${b}) contrast(${c})`;
+  }
+
+  // ── Enhancement ───────────────────────────────────────────────────────────
+  btnEnhance.addEventListener('click', () => {
+    if (enhanceLevel < MAX_LEVEL) {
+      enhanceLevel++;
+      updateLevelBadge();
+      schedulePreview();
+    }
+  });
+
+  btnReduce.addEventListener('click', () => {
+    if (enhanceLevel > MIN_LEVEL) {
+      enhanceLevel--;
+      updateLevelBadge();
+      schedulePreview();
+    }
+  });
+
+  function updateLevelBadge() {
+    const pct = enhanceLevel * 10;
+    levelBadge.textContent = pct > 0 ? `+${pct}%` : `${pct}%`;
+    levelBadge.className   = 'level-badge' +
+      (enhanceLevel > 0 ? ' positive' : enhanceLevel < 0 ? ' negative' : '');
+    btnEnhance.disabled = enhanceLevel >= MAX_LEVEL;
+    btnReduce.disabled  = enhanceLevel <= MIN_LEVEL;
+  }
+
+  // ── Caption / filename ────────────────────────────────────────────────────
+  captionInput.addEventListener('input', updateFilenamePreview);
+
+  function updateFilenamePreview() {
+    const caption = captionInput.value.trim();
+    if (caption) {
+      const date     = todayISO();
+      const safeName = toFileSafe(caption);
+      filenameEl.textContent = `→ ${safeName}_${date}.jpg`;
+      filenameEl.className   = 'filename-preview ready';
+    } else {
+      filenameEl.textContent = 'Enter a caption to see the filename';
+      filenameEl.className   = 'filename-preview';
+    }
+  }
+
+  // ── Download ──────────────────────────────────────────────────────────────
+  btnDownload.addEventListener('click', () => {
+    if (!cropper) return;
+
+    const caption = captionInput.value.trim();
+    if (!caption) {
+      captionInput.classList.add('error');
+      captionInput.focus();
+      captionInput.placeholder = 'Please enter a caption before downloading';
+      setTimeout(() => captionInput.classList.remove('error'), 400);
+      return;
+    }
+
+    // 1. Cropped canvas at 2000 × 1125 (16:9 @ 2000px wide)
+    const src = cropper.getCroppedCanvas({ width: 2000, height: 1125 });
+    if (!src) return;
+
+    // 2. Apply brightness/contrast via canvas filter
+    const out = document.createElement('canvas');
+    out.width  = src.width;
+    out.height = src.height;
+    const ctx  = out.getContext('2d');
+    ctx.filter = buildFilter();
+    ctx.drawImage(src, 0, 0);
+    ctx.filter = 'none';
+
+    // 3. Export as JPEG
+    const jpegDataUrl = out.toDataURL('image/jpeg', 0.88);
+
+    // 4. Inject EXIF metadata (caption → ImageDescription + UserComment)
+    let finalDataUrl = jpegDataUrl;
+    try {
+      const exif = { '0th': {}, 'Exif': {} };
+      exif['0th'][piexif.ImageIFD.ImageDescription] = caption;
+      // UserComment requires charset prefix bytes (ASCII\0\0\0 = 8 bytes)
+      const asciiPrefix = [65,83,67,73,73,0,0,0];
+      const commentBytes = asciiPrefix.concat(Array.from(caption).map(c => c.charCodeAt(0)));
+      exif['Exif'][piexif.ExifIFD.UserComment] = commentBytes;
+      const exifBytes = piexif.dump(exif);
+      finalDataUrl = piexif.insert(exifBytes, jpegDataUrl);
+    } catch (err) {
+      console.warn('EXIF injection failed — downloading without metadata:', err);
+    }
+
+    // 5. Trigger download
+    const filename = `${toFileSafe(caption)}_${todayISO()}.jpg`;
+    const blob     = dataURLtoBlob(finalDataUrl);
+    const url      = URL.createObjectURL(blob);
+    const a        = document.createElement('a');
+    a.href         = url;
+    a.download     = filename;
+    a.click();
+    setTimeout(() => URL.revokeObjectURL(url), 2000);
+  });
+
+  // ── Reset ─────────────────────────────────────────────────────────────────
+  btnReset.addEventListener('click', () => {
+    if (cropper) { cropper.destroy(); cropper = null; }
+    cropImage.src              = '';
+    editor.style.display       = 'none';
+    uploadZone.style.display   = '';
+    fileInput.value            = '';
+    enhanceLevel               = 0;
+    captionInput.value         = '';
+    updateLevelBadge();
+    updateFilenamePreview();
+  });
+
+  // ── Helpers ───────────────────────────────────────────────────────────────
+  function todayISO() {
+    return new Date().toISOString().slice(0, 10);
+  }
+
+  function toFileSafe(str) {
+    return str.trim()
+      .replace(/\s+/g, '_')
+      .replace(/[^a-zA-Z0-9_\-]/g, '');
+  }
+
+  function dataURLtoBlob(dataURL) {
+    const [header, data] = dataURL.split(',');
+    const mime           = header.match(/:(.*?);/)[1];
+    const binary         = atob(data);
+    const bytes          = new Uint8Array(binary.length);
+    for (let i = 0; i < binary.length; i++) bytes[i] = binary.charCodeAt(i);
+    return new Blob([bytes], { type: mime });
+  }
+</script>
+</body>
+</html>
