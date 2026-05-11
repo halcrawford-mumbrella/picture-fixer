@@ -28,7 +28,7 @@
       top: 0;
       z-index: 100;
     }
-    header img.logo { height: 28px; display: block; }
+    header img.logo { height: 22px; display: block; }
     header .divider { width: 1px; height: 24px; background: #444; }
     header h1 {
       font-size: 1rem;
@@ -57,7 +57,8 @@
       border-color: #d0021b;
       background: #fff8f8;
     }
-    #upload-zone .icon { font-size: 56px; line-height: 1; margin-bottom: 16px; }
+    #upload-zone .icon { margin-bottom: 20px; }
+    #upload-zone .icon img { width: 220px; height: auto; border-radius: 8px; opacity: 0.85; }
     #upload-zone h2 { font-size: 1.15rem; font-weight: 600; color: #333; margin-bottom: 6px; }
     #upload-zone p { color: #999; font-size: 0.85rem; }
     #file-input { display: none; }
@@ -222,7 +223,7 @@
 
   <!-- ── Upload Zone ── -->
   <div id="upload-zone" role="button" aria-label="Upload image" tabindex="0">
-    <div class="icon">🖼</div>
+    <div class="icon"><img src="Picture_Fixer_image_2026-05-11.jpg" alt=""></div>
     <h2>Drop an image here, or click to upload</h2>
     <p>JPEG · PNG · WebP · GIF · TIFF · BMP · HEIC and more &mdash; or just paste with &#8984;V / Ctrl+V</p>
     <input type="file" id="file-input" accept="image/*">
