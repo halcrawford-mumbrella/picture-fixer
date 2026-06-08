@@ -102,7 +102,30 @@
       letter-spacing: 0.07em;
       text-transform: uppercase;
       color: #888;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
     }
+    .zoom-btns { display: flex; gap: 4px; flex-shrink: 0; }
+    .zoom-btn {
+      background: #efefef;
+      border: none;
+      border-radius: 5px;
+      width: 28px;
+      height: 28px;
+      font-size: 1rem;
+      line-height: 1;
+      cursor: pointer;
+      color: #555;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: background .12s;
+      font-family: inherit;
+      font-weight: 700;
+    }
+    .zoom-btn:hover  { background: #ddd; color: #1a1a1a; }
+    .zoom-btn:active { background: #ccc; }
     .card-body { padding: 20px; }
 
     /* ── Cropper ── */
@@ -406,7 +429,13 @@
     <div id="editor">
 
       <div class="card">
-        <div class="card-header">Step 1 &mdash; Position your 16:9 crop</div>
+        <div class="card-header">
+          <span>Step 1 &mdash; Position your 16:9 crop</span>
+          <div class="zoom-btns">
+            <button class="zoom-btn" id="zoom-out" title="Zoom out">&#8722;</button>
+            <button class="zoom-btn" id="zoom-in"  title="Zoom in">&#43;</button>
+          </div>
+        </div>
         <div class="crop-wrap">
           <img id="crop-image" src="" alt="">
         </div>
@@ -606,9 +635,12 @@ function loadImage(file) {
     cropImage.onload = () => {
       cropper = new Cropper(cropImage, {
         aspectRatio: 16 / 9, viewMode: 1, autoCropArea: 0.95, responsive: true,
+        zoomOnWheel: false,
         ready()   { schedulePreview(); },
         cropend() { schedulePreview(); },
       });
+      document.getElementById('zoom-in').onclick  = () => { cropper.zoom( 0.1); schedulePreview(); };
+      document.getElementById('zoom-out').onclick = () => { cropper.zoom(-0.1); schedulePreview(); };
     };
   };
   reader.readAsDataURL(file);
@@ -794,6 +826,10 @@ function buildPortraitCard(portrait, dataUrl) {
     <div class="portrait-card-header">
       <span class="drag-handle" title="Drag to reorder">&#8942;&#8942;</span>
       <span class="portrait-card-label" id="plabel-${portrait.id}">Portrait</span>
+      <div class="zoom-btns">
+        <button class="zoom-btn" id="pzout-${portrait.id}" title="Zoom out">&#8722;</button>
+        <button class="zoom-btn" id="pzin-${portrait.id}"  title="Zoom in">&#43;</button>
+      </div>
       <button class="portrait-remove-btn" data-id="${portrait.id}">Remove</button>
     </div>
     <div class="portrait-crop-wrap">
@@ -824,9 +860,12 @@ function buildPortraitCard(portrait, dataUrl) {
     viewMode:     1,
     autoCropArea: 0.95,
     responsive:   true,
+    zoomOnWheel:  false,
     ready()   { scheduleComposite(); },
     cropend() { scheduleComposite(); },
   });
+  document.getElementById(`pzin-${portrait.id}`).onclick  = () => { portrait.cropper.zoom( 0.1); scheduleComposite(); };
+  document.getElementById(`pzout-${portrait.id}`).onclick = () => { portrait.cropper.zoom(-0.1); scheduleComposite(); };
 
   // Enhance buttons
   document.getElementById(`penhance-${portrait.id}`).addEventListener('click', () => {
