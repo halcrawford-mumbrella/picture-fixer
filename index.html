@@ -458,12 +458,8 @@
     // 4. Inject EXIF metadata (caption → ImageDescription + UserComment)
     let finalDataUrl = jpegDataUrl;
     try {
-      const exif = { '0th': {}, 'Exif': {} };
+      const exif = { '0th': {} };
       exif['0th'][piexif.ImageIFD.ImageDescription] = caption;
-      // UserComment requires charset prefix bytes (ASCII\0\0\0 = 8 bytes)
-      const asciiPrefix = [65,83,67,73,73,0,0,0];
-      const commentBytes = asciiPrefix.concat(Array.from(caption).map(c => c.charCodeAt(0)));
-      exif['Exif'][piexif.ExifIFD.UserComment] = commentBytes;
       const exifBytes = piexif.dump(exif);
       finalDataUrl = piexif.insert(exifBytes, jpegDataUrl);
     } catch (err) {
