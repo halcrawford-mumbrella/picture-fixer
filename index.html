@@ -366,15 +366,15 @@
 
   function renderPreview() {
     if (!cropper) return;
-    const src = cropper.getCroppedCanvas({ width: 800, height: 450 });
-    if (!src) return;
+    const cropData = cropper.getData();
 
-    previewCanvas.width  = src.width;
-    previewCanvas.height = src.height;
+    previewCanvas.width  = 800;
+    previewCanvas.height = 450;
     const ctx = previewCanvas.getContext('2d');
-    ctx.clearRect(0, 0, src.width, src.height);
+    ctx.imageSmoothingEnabled = true;
+    ctx.imageSmoothingQuality = 'high';
     ctx.filter = buildFilter();
-    ctx.drawImage(src, 0, 0);
+    ctx.drawImage(cropImage, cropData.x, cropData.y, cropData.width, cropData.height, 0, 0, 800, 450);
     ctx.filter = 'none';
   }
 
@@ -440,21 +440,20 @@
       return;
     }
 
-    // 1. Cropped canvas at 2000 × 1125 (16:9 @ 2000px wide)
-    const src = cropper.getCroppedCanvas({ width: 2000, height: 1125 });
-    if (!src) return;
-
-    // 2. Apply brightness/contrast via canvas filter
+    // 1. Draw directly from original image using crop coordinates — one step, no intermediate canvas
+    const cropData = cropper.getData();
     const out = document.createElement('canvas');
-    out.width  = src.width;
-    out.height = src.height;
+    out.width  = 2000;
+    out.height = 1125;
     const ctx  = out.getContext('2d');
+    ctx.imageSmoothingEnabled = true;
+    ctx.imageSmoothingQuality = 'high';
     ctx.filter = buildFilter();
-    ctx.drawImage(src, 0, 0);
+    ctx.drawImage(cropImage, cropData.x, cropData.y, cropData.width, cropData.height, 0, 0, 2000, 1125);
     ctx.filter = 'none';
 
-    // 3. Export as JPEG
-    const jpegDataUrl = out.toDataURL('image/jpeg', 0.88);
+    // 2. Export as JPEG
+    const jpegDataUrl = out.toDataURL('image/jpeg', 0.92);
 
     // 4. Inject EXIF metadata (caption → ImageDescription + UserComment)
     let finalDataUrl = jpegDataUrl;
