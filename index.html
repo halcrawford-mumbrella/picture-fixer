@@ -779,12 +779,12 @@ btnDownload.addEventListener('click', () => {
   }
   const d   = cropper.getData();
   const out = document.createElement('canvas');
-  out.width = 2000; out.height = 1125;
+  out.width = 1800; out.height = 1013;
   const ctx = out.getContext('2d');
   ctx.imageSmoothingEnabled = true;
   ctx.imageSmoothingQuality = 'high';
   ctx.filter = buildFilter(enhanceLevel);
-  ctx.drawImage(cropImage, d.x, d.y, d.width, d.height, 0, 0, 2000, 1125);
+  ctx.drawImage(cropImage, d.x, d.y, d.width, d.height, 0, 0, 1800, 1013);
   ctx.filter = 'none';
   if (sharpened) applyUnsharpMask(out);
   injectExifAndDownload(out.toDataURL('image/jpeg', 0.92), cap, `${toFileSafe(cap)}_${todayISO()}.jpg`);
@@ -873,7 +873,7 @@ function loadPortraitFile(file) {
 // ── Slot geometry ─────────────────────────────────────────────────────────────
 function slotRatio() {
   const n = Math.max(portraits.length, 1);
-  return Math.floor((2000 - (n - 1) * 6) / n) / 1125;
+  return Math.floor((1800 - (n - 1) * 6) / n) / 1013;
 }
 
 function computeSlots(n, totalW, gap) {
@@ -1130,7 +1130,7 @@ portraitDownloadBtn.addEventListener('click', () => {
   }
 
   const out = document.createElement('canvas');
-  drawCompositeToCanvas(out, 2000, 1125, 6);
+  drawCompositeToCanvas(out, 1800, 1013, 6);
 
   const names    = portraits.map(p => p.name.trim());
   const caption  = names.join(', ');
