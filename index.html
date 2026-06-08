@@ -232,6 +232,13 @@
     }
     .reset-btn:hover { color: #555; }
 
+    .source-filename {
+      font-size: 0.78rem;
+      color: #aaa;
+      font-style: italic;
+      margin-bottom: 8px;
+    }
+
     /* ══════════════════════════════════════════════════
        Portrait Fixer
     ══════════════════════════════════════════════════ */
@@ -423,6 +430,7 @@
         <div class="card-body">
           <div class="caption-row">
             <label for="caption-input">Who or what is in the image?</label>
+            <p class="source-filename" id="source-filename"></p>
             <input type="text" id="caption-input" placeholder="e.g. Jane Smith at Cannes Lions 2026" autocomplete="off">
           </div>
           <div class="download-row">
@@ -591,6 +599,7 @@ function loadImage(file) {
     if (cropper) { cropper.destroy(); cropper = null; }
     enhanceLevel = 0;
     captionInput.value = '';
+    document.getElementById('source-filename').textContent = `Original filename: ${file.name}`;
     updateLevelBadge();
     updateFilenamePreview();
     cropImage.src = evt.target.result;
@@ -737,7 +746,7 @@ function loadPortraitFile(file) {
     const img = new Image();
     img.onload = () => {
       const id      = ++portraitIdSeq;
-      const portrait = { id, img, cropper: null, enhanceLevel: 0, name: '' };
+      const portrait = { id, img, cropper: null, enhanceLevel: 0, name: '', filename: file.name };
       portraits.push(portrait);
       portraitUploadZone.style.display = 'none';
       portraitEditor.style.display     = 'block';
@@ -799,12 +808,14 @@ function buildPortraitCard(portrait, dataUrl) {
       </div>
       <div class="portrait-name-row">
         <label>Person's name</label>
+        <p class="source-filename" id="pfn-${portrait.id}"></p>
         <input type="text" class="portrait-name-input" id="pname-${portrait.id}"
                placeholder="e.g. Jane Smith" autocomplete="off">
       </div>
     </div>`;
 
   portraitCardsList.appendChild(card);
+  document.getElementById(`pfn-${portrait.id}`).textContent = `Original filename: ${portrait.filename}`;
 
   // Cropper
   const imgEl = document.getElementById(`pimg-${portrait.id}`);
