@@ -19,30 +19,36 @@
 
     /* ── Header ── */
     header {
-      background: #1a1a1a;
-      padding: 0 28px;
-      height: 60px;
+      background: #11111f;
+      color: #fff;
+      padding: 14px 20px;
       display: flex;
       align-items: center;
-      gap: 18px;
-      box-shadow: 0 2px 6px rgba(0,0,0,.35);
+      justify-content: space-between;
       position: sticky;
       top: 0;
       z-index: 100;
+      box-shadow: 0 1px 4px rgba(0,0,0,0.3);
     }
-    header img.logo { height: 22px; display: block; }
-    header .divider { width: 1px; height: 24px; background: #444; }
+    .header-left { display: flex; align-items: center; }
+    .header-logo { height: 20px; width: auto; display: block; }
+    .header-pipe {
+      width: 1px;
+      height: 24px;
+      background: rgba(255,255,255,0.3);
+      margin: 0 14px;
+      flex-shrink: 0;
+    }
     header h1 {
-      font-size: 1rem;
+      font-size: 0.95rem;
       font-weight: 700;
-      letter-spacing: 0.06em;
+      letter-spacing: 0.12em;
       text-transform: uppercase;
-      color: #fff;
     }
-    header h1 span { color: #d0021b; }
+    .title-accent { color: #e53935; }
 
     /* ── Nav ── */
-    header nav { margin-left: auto; display: flex; gap: 4px; }
+    header nav { display: flex; gap: 4px; }
     .nav-btn {
       background: none;
       border: none;
@@ -449,9 +455,13 @@
 <body>
 
 <header>
-  <img src="mumbrellafooter.png" alt="Mumbrella" class="logo">
-  <div class="divider"></div>
-  <h1>Picture <span>Fixer</span></h1>
+  <div class="header-left">
+    <a href="https://halcrawford-mumbrella.github.io" style="display:flex;align-items:center">
+      <img class="header-logo" src="mumbrellafooter.png" alt="Mumbrella Tools">
+    </a>
+    <div class="header-pipe"></div>
+    <h1>PICTURE <span class="title-accent">FIXER</span></h1>
+  </div>
   <nav>
     <button class="nav-btn active" id="nav-picture">Picture Fixer</button>
     <button class="nav-btn"        id="nav-portrait">Portrait Fixer</button>
